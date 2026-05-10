@@ -137,9 +137,9 @@ def process_all_data(df, df_meta_data_arg):
     df_ref_raw = df.loc[df.index <= split_date]
     df_2022_raw = df.loc[df.index > split_date]
 
-    # split data, high altitude and low altitude
-    # but first get altitude from metadata, only for the stations in our database
+    # split data, high altitude and low altitude, but first get altitude from metadata, only for the stations in our database
     df_meta_our_stations = df_meta_data_arg[df_meta_data_arg.station_id.isin(df_2022_raw.obs_station_id.unique())]
+
     # get ids of the 5 highest and lowest stations
     high_station_id = df_meta_our_stations.sort_values(by=['station_alt'])[-5:].station_id
     low_station_id = df_meta_our_stations.sort_values(by=['station_alt'])[:5].station_id
@@ -166,7 +166,7 @@ def process_all_data(df, df_meta_data_arg):
     return df_ref_high_agg, df_ref_low_agg, df_2022_high_agg, df_2022_low_agg
 
 
-def plot_anomaly(df_2022_arg, df_ref_arg, parameter, df_meta_data_arg):
+def plot_anomaly(df_2022_arg, df_ref_arg, parameter, df_meta_data_arg, label=None):
 
     """
     Function plots the temperature difference between the two periods.
@@ -186,6 +186,7 @@ def plot_anomaly(df_2022_arg, df_ref_arg, parameter, df_meta_data_arg):
 
     # calculate anomaly
     df_dif = df_2022_arg - df_ref_arg
+
     # get values of the parameter from df
     para_val = df_dif[f'obs_{parameter}'].values
 
@@ -217,8 +218,11 @@ def plot_anomaly(df_2022_arg, df_ref_arg, parameter, df_meta_data_arg):
 
     # Set labels and title
     # get the name of the station from df_meta_data
-    station_name = \
-    df_meta_data_arg.loc[df_meta_data_arg.station_id == df_2022_arg.obs_station_id[0]].station_name.values[0]
+    if label is not None:
+        station_name = label
+    else:
+        station_name = \
+        df_meta_data_arg.loc[df_meta_data_arg.station_id == df_2022_arg.obs_station_id[0]].station_name.values[0]
 
     ax.set_ylabel('Temperature Difference [deg C]')
     ax.set_title(f'{parameter} Temperature Anomaly 2022, {station_name}')
@@ -271,15 +275,16 @@ def plot_anomaly_line_all(df_2022_arg, df_ref_arg):
     ax.tick_params(bottom=False)
     ax.spines[['top', 'right', 'bottom']].set_visible(False)
 
+    plt.savefig(BASE_DIR / 'images' / f'Temperature_Anomaly_2022.png', format='png')
     plt.show()
 
 
 
 if __name__ == '__main__':
     
-    # could import DATABASE from main_file_2, but this takes very long
-    DATA_PATH = "_data"
-    DATABASE = os.path.join(DATA_PATH, "_stations.db")
+    # could import DATABASE from database.py, but this takes very long
+    DATA_PATH = BASE_DIR / "data"
+    DATABASE = os.path.join(DATA_PATH, "stations.db")
 
     # connect to sql database
     db_connector = sqlite3.connect(DATABASE)
@@ -287,7 +292,9 @@ if __name__ == '__main__':
     # get information/metadata off all stations
     df_meta_data = get_stations_information(db_connector)
 
-    '''
+
+
+    
     # get data from database for all stations
     df_all_raw = get_all_station_data(db_connector)
 
@@ -295,25 +302,26 @@ if __name__ == '__main__':
     df_ref_high, df_ref_low, df_2022_high, df_2022_low = process_all_data(df_all_raw, df_meta_data)
 
     # plot temperature anomaly TMK high stations
-    plot_anomaly(df_2022_high, df_ref_high, 'TMK', df_meta_data)
+    plot_anomaly(df_2022_high, df_ref_high, 'TMK', df_meta_data, label='High Altitude Stations')
 
     # plot temperature anomaly TMK low stations
-    plot_anomaly(df_2022_low, df_ref_low, 'TMK', df_meta_data)
-    '''
+    plot_anomaly(df_2022_low, df_ref_low, 'TMK', df_meta_data, label='Low Altitude Stations')
+    
 
-    # get data from database for station 701
-    df_raw = get_station_data(701, db_connector)
+    stat_id = 5000
+
+    # get data from database for station 5000
+    df_raw = get_station_data(stat_id, db_connector)
 
     # process data from database
     df_2022, df_ref = process_data(df_raw)
 
     # plot temperature anomaly TMK
     plot_anomaly(df_2022, df_ref, 'TNK', df_meta_data)
-    # plot_anomaly(df_2022, df_ref, 'TXK', df_meta_data)
-    # plot_anomaly(df_2022, df_ref, 'TMK', df_meta_data)
+    plot_anomaly(df_2022, df_ref, 'TXK', df_meta_data)
+    plot_anomaly(df_2022, df_ref, 'TMK', df_meta_data)
 
     # plot temperature anomaly TMK, TXK, TNK as linechart
-    # plot_anomaly_line_all(df_2022, df_ref)
+    plot_anomaly_line_all(df_2022, df_ref)
 
-    # close connection to sql database
     db_connector.close()
