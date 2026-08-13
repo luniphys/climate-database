@@ -10,8 +10,8 @@ An academic group project completed as part of the **Digital Science Minor** at 
 
 This project retrieves, processes, and analyzes meteorological data from weather stations across Austria using a public meteo API. The core focus areas are:
 
-- **XML data processing** — parsing station metadata and observation records from XML API responses using Python's `xml.etree.ElementTree`
-- **SQL / relational data management** — storing and querying the processed data in a SQLite database with proper schema design, foreign key constraints and correct use of relational databases.
+- **XML Data processing** — Parsing station metadata and observation records from XML API responses using Python's `xml.etree.ElementTree`
+- **SQL / Relational data management** — Storing and querying the processed data in a SQLite database with proper schema design, foreign key constraints and correct use of relational databases.
 
 ## Project Structure
 
@@ -20,7 +20,7 @@ src/
   retrieve_data.py   # Fetches and parses XML data from the meteo API
   database.py        # Manages the SQLite database (schema, inserts, queries)
   graphics.py        # Data retrieval, processing & analysis
-data/                # Generated SQLite database
+data/                # SQLite database
 images/              # Plotted data
 ```
 
